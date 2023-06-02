@@ -1,0 +1,13 @@
+# Node FIles
+node_modules/
+# Config File
+.env
+# Irritating file create by Mac
+.DS_Store
+# Build files
+build/
+# Idea files
+.idea/
+# Yarn
+yarn.lock
+yarn-error.log
