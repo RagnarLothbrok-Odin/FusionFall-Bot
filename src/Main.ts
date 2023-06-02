@@ -58,10 +58,14 @@ async function run() {
     const missingTokenError = 'You must pass the token for the client.';
     const invalidLoggingValueError = 'The \'logging\' value must be true or false.';
     const invalidLoggingChannel = 'You must pass a logging channel if logging is set to true.';
+    const invalidIp = 'You must pass an IP.';
+    const invalidChannel = 'You must pass a channel.';
 
     if (process.env.Logging !== 'true' && process.env.Logging !== 'false') throw new Error(invalidLoggingValueError);
     if (process.env.Logging === 'true' && !process.env.LoggingChannel) throw new Error(invalidLoggingChannel);
     if (!process.env.Token) throw Error(missingTokenError);
+    if (!process.env.Ip) throw Error(invalidIp);
+    if (!process.env.ChannelId) throw Error(invalidChannel);
 
     /**
      * Delays the execution of the function for a specified time in milliseconds.
