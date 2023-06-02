@@ -2,7 +2,7 @@ import type { Client } from 'discordx';
 import { Discord, Once } from 'discordx';
 import si from 'systeminformation';
 import 'colors';
-import { ActivityType, ActivityOptions } from 'discord.js';
+import { connectFusionFall } from '../utils/Util.js';
 
 /**
  * Discord.js Ready event handler.
@@ -80,7 +80,7 @@ export class Ready {
             '\n',
         );
 
-        // Set activity
-        if (process.env.Activity) client.user?.setActivity(process.env.Activity);
+        // Connect to FusionFall
+        await connectFusionFall(client);
     }
 }
