@@ -196,18 +196,17 @@ export class FusionFallMonitor {
 
                         const [, , role, username, identifier, message] = match;
 
-                        if (message.startsWith('/') || message.length < 3 || message.startsWith('redeem')) {
+                        const blockedWords = this.words.filter((word) => message.toLowerCase().includes(word.toLowerCase()));
+
+                        if (blockedWords.length > 0) {
+                            if (staffChannel) {
+                                channel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
+                            }
                             break;
                         }
 
-                        if (this.words.length) {
-                            const messageWords = message.toLowerCase().split(' ');
-                            const hasBannedWord = this.words.some((word) => messageWords.includes(word.toLowerCase()));
-
-                            if (hasBannedWord) {
-                                if (staffChannel) channel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
-                                break;
-                            }
+                        if (message.length < 3 || message.startsWith('/') || message.startsWith('redeem')) {
+                            break;
                         }
 
                         const formattedMessage = `**[${match[1]}]**${role ? ` *(${role})*` : ''} ${username} ${identifier ? `*[${identifier}]*` : ''}: \`${message}\``;
