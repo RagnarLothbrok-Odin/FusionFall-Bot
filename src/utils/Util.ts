@@ -2,7 +2,9 @@ import type { Message } from 'discord.js';
 import { Client } from 'discordx';
 import 'colors';
 import net from 'net';
-import { ActivityType, ChannelType, codeBlock } from 'discord.js';
+import {
+    ActivityType, ChannelType, codeBlock,
+} from 'discord.js';
 import words from '../bannedWords.json' assert { type: 'json' };
 
 /**
@@ -59,68 +61,79 @@ export async function getCommandIds(client: Client) {
 }
 
 /**
- * Connects to the FusionFall monitor and processes the received data.
- * @param client - The Discord client instance.
- * @returns void
+ * Class representing a connection to the FusionFall monitor.
  */
-export async function connectFusionFall(client: Client): Promise<void> {
-    let online: boolean;
-    let population = 0;
+export class FusionFallMonitor {
+    public online: boolean;
 
-    const debug = false;
+    public population: number;
 
-    let ip = process.env.Ip || '127.0.0.1';
-    if (!ip.includes(':')) ip += ':8003';
+    public serverName: string;
 
-    let buffer: string[] = [];
+    private words: string[];
 
-    const options: net.NetConnectOpts = {
-        port: parseInt(ip.split(':')[1], 10),
-        host: ip.split(':')[0],
-    };
+    private client: Client;
 
-    console.log('[INFO]'.red.bold, `Connecting to monitor at ${ip}...`.white.bold);
+    private readonly ip: string;
 
-    let socket = net.connect(options, () => {
-        console.log('[INFO]'.red.bold, 'Connected.'.green.bold);
-        online = true;
-    });
+    private buffer: string[];
 
-    socket.on('data', onData);
-    socket.on('error', onErr);
-    socket.on('end', onEnd);
+    private readonly options: net.NetConnectOpts;
 
-    /**
-     * Handles the received data from the FusionFall monitor.
-     * @param data - The received data as a Buffer.
-     * @returns void
-     */
-    function onData(data: Buffer): void {
-        const tokens = data.toString().split('\n');
+    private socket: net.Socket;
 
-        tokens.forEach((token) => {
-            if (token.length > 0) buffer.push(token);
+    private readonly debug: boolean;
+
+    constructor(client: Client) {
+        this.client = client;
+        this.debug = false;
+        this.online = false;
+        this.population = 0;
+        this.serverName = process.env.ServerName || 'N/A';
+        this.words = words;
+        this.ip = process.env.Ip || '127.0.0.1';
+        if (!this.ip.includes(':')) this.ip += ':8003';
+        this.buffer = [];
+        this.options = {
+            port: parseInt(this.ip.split(':')[1], 10),
+            host: this.ip.split(':')[0],
+        };
+        this.socket = new net.Socket();
+    }
+
+    public async connect() {
+        console.log('[INFO]'.red.bold, `Connecting to monitor at ${this.ip}...`.white.bold);
+
+        this.socket = net.connect(this.options, () => {
+            console.log('[INFO]'.red.bold, 'Connected.'.green.bold);
+            this.online = true;
         });
 
-        if (buffer.includes('end')) {
-            processBuffer();
+        this.socket.on('data', this.onData.bind(this));
+        this.socket.on('error', this.onErr.bind(this));
+        this.socket.on('end', this.onEnd.bind(this));
+    }
+
+    private onData(data: Buffer): void {
+        const tokens = data.toString().split('\n');
+        tokens.forEach((token) => {
+            if (token.length > 0) this.buffer.push(token);
+        });
+        if (this.buffer.includes('end')) {
+            this.processBuffer();
         }
     }
 
-    /**
-     * Refreshes the status of the bot's activity based on the online status and population.
-     * @returns void
-     */
-    function refreshStatus(): void {
-        if (online) {
-            client.user?.setActivity(
-                `${population} players`,
+    private refreshStatus(): void {
+        if (this.online) {
+            this.client.user?.setActivity(
+                `${this.population} players`,
                 {
                     type: ActivityType.Watching,
                 },
             );
         } else {
-            client.user?.setActivity(
+            this.client.user?.setActivity(
                 '0 players',
                 {
                     type: ActivityType.Watching,
@@ -129,49 +142,30 @@ export async function connectFusionFall(client: Client): Promise<void> {
         }
     }
 
-    /**
-     * Handles the error event of the socket connection.
-     * @returns void
-     */
-    function onErr(): void {
-        online = false;
-        setTimeout(attemptReconnect, 10000);
+    private onErr(): void {
+        this.online = false;
+        setTimeout(this.attemptReconnect.bind(this), 10000);
     }
 
-    /**
-     * Handles the end event of the socket connection.
-     * @returns void
-     */
-    function onEnd(): void {
+    private onEnd(): void {
         console.log('[WARN]'.red.bold, 'Lost connection to monitor.'.white.bold);
-        online = false;
-        setTimeout(attemptReconnect, 10000);
+        this.online = false;
+        setTimeout(this.attemptReconnect.bind(this), 10000);
     }
 
-    /**
-     * Attempts to reconnect to the FusionFall monitor.
-     * @returns void
-     */
-    function attemptReconnect(): void {
+    private attemptReconnect(): void {
         console.log('Attempting to reconnect...'.white.bold);
-
-        if (!debug) refreshStatus();
-        socket = net.connect(options, () => {
+        if (!this.debug) this.refreshStatus();
+        this.socket = net.connect(this.options, () => {
             console.log('Reconnected.'.green.bold);
-            online = true;
+            this.online = true;
         });
-
-        socket.on('error', onErr);
-        socket.on('data', onData);
-        socket.on('end', onEnd);
+        this.socket.on('error', this.onErr.bind(this));
+        this.socket.on('data', this.onData.bind(this));
+        this.socket.on('end', this.onEnd.bind(this));
     }
 
-    /**
-     * Prints the buffer content for debugging purposes.
-     * @param data - The buffer content to print.
-     * @returns void
-     */
-    function printBuffer(data: string[]): void {
+    private printBuffer(data: string[]): void {
         console.log('{');
         for (let i = 0; i < data.length; i += 1) {
             console.log(data[i]);
@@ -179,30 +173,29 @@ export async function connectFusionFall(client: Client): Promise<void> {
         console.log('}');
     }
 
-    /**
-     * Processes the buffer data received from the FusionFall monitor.
-     * @returns void
-     */
-    function processBuffer(): void {
-        if (debug) printBuffer(buffer);
-        if (buffer.includes('begin')) {
-            const queue = buffer.slice(buffer.indexOf('begin') + 1, buffer.indexOf('end'));
-            population = 0;
+    private processBuffer(): void {
+        if (this.debug) this.printBuffer(this.buffer);
+        if (this.buffer.includes('begin')) {
+            const queue = this.buffer.slice(this.buffer.indexOf('begin') + 1, this.buffer.indexOf('end'));
+            this.population = 0;
+
             for (let i = 0; i < queue.length; i += 1) {
-                const channel = client.channels.cache.get(`${process.env.ChannelId}`);
-                const staffChannel = process.env.StaffChannelId ? client.channels.cache.get(`${process.env.StaffChannelId}`) : null;
+                const channel = this.client.channels.cache.get(`${process.env.ChannelId}`);
+                const staffChannel = process.env.StaffChannelId ? this.client.channels.cache.get(`${process.env.StaffChannelId}`) : null;
+
                 if (!channel || channel.type !== ChannelType.GuildText) return;
 
                 const tokens = queue[i].split(' ');
                 const head = queue[i].substring(queue[i].indexOf(' ') + 1);
                 let body = '\n```\n';
                 let j: number;
+
                 switch (tokens[0]) {
                 case 'player':
-                    population += 1;
+                    this.population += 1;
                     break;
                 case 'chat': {
-                    if (!debug) {
+                    if (!this.debug) {
                         const cnt = queue[i].substring(queue[i].indexOf(' ') + 1);
                         const chatRegex = /^\[(.*?)](?: \((.*?)\))? (.*?) \[(.*?)]?: (.*)/;
                         const match = cnt.match(chatRegex);
@@ -217,9 +210,9 @@ export async function connectFusionFall(client: Client): Promise<void> {
                             break;
                         }
 
-                        if (words.length) {
+                        if (this.words.length) {
                             const messageWords = message.toLowerCase().split(' ');
-                            const hasBannedWord = words.some((word) => messageWords.includes(word.toLowerCase()));
+                            const hasBannedWord = this.words.some((word) => messageWords.includes(word.toLowerCase()));
 
                             if (hasBannedWord) {
                                 if (staffChannel) channel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
@@ -237,7 +230,7 @@ export async function connectFusionFall(client: Client): Promise<void> {
                         body += `${queue[i + j].substring(1)}\n`;
                     }
                     body += '```';
-                    if (!debug) channel.send(head + body);
+                    if (!this.debug) channel.send(head + body);
                     if (!queue[i + j].includes('endemail')) console.log('[WARN]'.red.bold, 'Bad email (no endemail)'.white.bold);
                     i += j;
                     break;
@@ -246,10 +239,10 @@ export async function connectFusionFall(client: Client): Promise<void> {
                     break;
                 }
             }
-            if (!debug) refreshStatus();
+            if (!this.debug) this.refreshStatus();
         } else {
             console.log('[WARN]'.red.bold, 'Bad data (no begin); ignoring'.white.bold);
         }
-        buffer = buffer.slice(buffer.indexOf('end') + 1, buffer.length);
+        this.buffer = this.buffer.slice(this.buffer.indexOf('end') + 1, this.buffer.length);
     }
 }
