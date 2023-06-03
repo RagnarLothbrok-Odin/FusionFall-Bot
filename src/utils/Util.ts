@@ -199,8 +199,8 @@ export class FusionFallMonitor {
                         const blockedWords = this.words.filter((word) => message.toLowerCase().includes(word.toLowerCase()));
 
                         if (blockedWords.length > 0) {
-                            if (staffChannel) {
-                                channel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
+                            if (staffChannel && (staffChannel.type === ChannelType.GuildText)) {
+                                staffChannel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
                             }
                             break;
                         }
