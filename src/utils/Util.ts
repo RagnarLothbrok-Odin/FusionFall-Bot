@@ -2,7 +2,8 @@ import type { Message } from 'discord.js';
 import { Client } from 'discordx';
 import 'colors';
 import net from 'net';
-import { ActivityType, ChannelType } from 'discord.js';
+import { ActivityType, ChannelType, codeBlock } from 'discord.js';
+import words from '../bannedWords.json' assert { type: 'json' };
 
 /**
  * Capitalises the first letter of each word in a string.
@@ -189,6 +190,7 @@ export async function connectFusionFall(client: Client): Promise<void> {
             population = 0;
             for (let i = 0; i < queue.length; i += 1) {
                 const channel = client.channels.cache.get(`${process.env.ChannelId}`);
+                const staffChannel = process.env.StaffChannelId ? client.channels.cache.get(`${process.env.StaffChannelId}`) : null;
                 if (!channel || channel.type !== ChannelType.GuildText) return;
 
                 const tokens = queue[i].split(' ');
@@ -200,10 +202,32 @@ export async function connectFusionFall(client: Client): Promise<void> {
                     population += 1;
                     break;
                 case 'chat': {
-                    const [messageType, sender, recipient, ...messageParts] = tokens;
-                    const messageContent = messageParts.join(' ').substring(messageParts.join(' ').indexOf(':') + 1).trim();
-                    const formattedMessage = `**[${messageType}]** *(${sender})* __${recipient}__: \`${messageContent}\``;
                     if (!debug) {
+                        const cnt = queue[i].substring(queue[i].indexOf(' ') + 1);
+                        const chatRegex = /^\[(.*?)](?: \((.*?)\))? (.*?) \[(.*?)]?: (.*)/;
+                        const match = cnt.match(chatRegex);
+
+                        if (!match) {
+                            break;
+                        }
+
+                        const [, , role, username, identifier, message] = match;
+
+                        if (message.startsWith('/') || message.length < 3 || message.startsWith('redeem')) {
+                            break;
+                        }
+
+                        if (words.length) {
+                            const messageWords = message.toLowerCase().split(' ');
+                            const hasBannedWord = words.some((word) => messageWords.includes(word.toLowerCase()));
+
+                            if (hasBannedWord) {
+                                if (staffChannel) channel.send(`**Usage of blocked word:**\n${codeBlock('text', cnt)}`);
+                                break;
+                            }
+                        }
+
+                        const formattedMessage = `**[${match[1]}]**${role ? ` *(${role})*` : ''} ${username} ${identifier ? `*[${identifier}]*` : ''}: \`${message}\``;
                         channel.send(formattedMessage);
                     }
                     break;
