@@ -125,21 +125,11 @@ export class FusionFallMonitor {
     }
 
     private refreshStatus(): void {
-        if (this.online) {
-            this.client.user?.setActivity(
-                `${this.population} players`,
-                {
-                    type: ActivityType.Watching,
-                },
-            );
-        } else {
-            this.client.user?.setActivity(
-                '0 players',
-                {
-                    type: ActivityType.Watching,
-                },
-            );
-        }
+        const activityText = this.online ? `${this.population} player${this.population !== 1 ? 's' : ''}` : '0 players';
+
+        this.client.user?.setActivity(activityText, {
+            type: ActivityType.Watching,
+        });
     }
 
     private onErr(): void {
