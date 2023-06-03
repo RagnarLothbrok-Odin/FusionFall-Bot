@@ -18,8 +18,11 @@ export class Server {
 
         const { online, population, serverName } = client.monitor;
 
+        let replyContent = `**${serverName}** is currently `;
+        replyContent += online ? `**online** ✅ with **${population}** player${population !== 1 ? 's' : ''}` : '**offline** ⛔';
+
         await interaction.reply({
-            content: `**${serverName}** is currently ${online ? '**online** ✅' : '**offline** ⛔'} with **${population}** player${population !== 1 ? 's' : ''}`,
+            content: replyContent,
         });
     }
 }
