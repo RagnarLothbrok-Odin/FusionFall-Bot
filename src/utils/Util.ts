@@ -209,7 +209,7 @@ export class FusionFallMonitor {
                             break;
                         }
 
-                        const formattedMessage = `**[${match[1]}]**${role ? ` *(${role})*` : ''} ${username} ${identifier ? `*[${identifier}]*` : ''}: \`${message.trim()}\``;
+                        const formattedMessage = `**[${match[1]}]**${role ? ` *(${role})*` : ''} ${identifier ? `*[${identifier}]*` : ''} **~** ${username}: \`${message.trim()}\``;
                         channel.send(formattedMessage);
                     }
                     break;
