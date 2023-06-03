@@ -102,10 +102,10 @@ export class FusionFallMonitor {
     }
 
     public async connect() {
-        console.log('[INFO]'.red.bold, `Connecting to monitor at ${this.ip}...`.white.bold);
+        console.log('[INFO]'.blue.bold, `Connecting to monitor at ${this.ip}...`.white.bold);
 
         this.socket = net.connect(this.options, () => {
-            console.log('[INFO]'.red.bold, 'Connected.'.green.bold);
+            console.log('[INFO]'.green.bold, 'Connected.'.green.bold);
             this.online = true;
         });
 
@@ -144,10 +144,10 @@ export class FusionFallMonitor {
     }
 
     private attemptReconnect(): void {
-        console.log('Attempting to reconnect...'.white.bold);
+        console.log('[WARN]'.red.bold, 'Attempting to reconnect...'.white.bold);
         if (!this.debug) this.refreshStatus();
         this.socket = net.connect(this.options, () => {
-            console.log('Reconnected.'.green.bold);
+            console.log('[INFO]'.blue.bold, 'Reconnected.'.green.bold);
             this.online = true;
         });
         this.socket.on('error', this.onErr.bind(this));
