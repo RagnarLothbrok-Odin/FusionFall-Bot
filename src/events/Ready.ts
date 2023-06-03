@@ -2,7 +2,6 @@ import type { Client } from 'discordx';
 import { Discord, Once } from 'discordx';
 import si from 'systeminformation';
 import 'colors';
-import { connectFusionFall } from '../utils/Util.js';
 
 /**
  * Discord.js Ready event handler.
@@ -79,8 +78,5 @@ export class Ready {
             `${process.env.npm_package_version}`.green.bold,
             '\n',
         );
-
-        // Connect to FusionFall
-        await connectFusionFall(client);
     }
 }
