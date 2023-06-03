@@ -4,11 +4,16 @@ import {
 } from 'discord.js';
 import { Client } from 'discordx';
 import 'dotenv/config';
+import { FusionFallMonitor } from './utils/Util.js';
+
+export class FusionClient extends Client {
+    public monitor?: FusionFallMonitor;
+}
 
 /**
  * The Discord.js client instance.
  */
-const client = new Client({
+const client = new FusionClient({
     intents: [IntentsBitField.Flags.Guilds, IntentsBitField.Flags.GuildMessages, IntentsBitField.Flags.MessageContent],
     silent: true,
 });
@@ -85,6 +90,11 @@ async function run() {
         await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`);
         await sleep(time);
         await client.login(process.env.Token as string);
+        await sleep(time * 4);
+        // Create a new instance of FusionFallMonitor
+        client.monitor = new FusionFallMonitor(client);
+        // Connect to FusionFall
+        await client.monitor.connect();
     };
     await loadSequentially();
 }
