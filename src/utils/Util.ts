@@ -187,14 +187,32 @@ export class FusionFallMonitor {
                 case 'chat': {
                     if (!this.debug) {
                         const cnt = queue[i].substring(queue[i].indexOf(' ') + 1);
-                        const chatRegex = /^\[(.*?)](?: \((.*?)\))? (.*?) \[(.*?)]?: (.*)/;
-                        const match = cnt.match(chatRegex);
 
-                        if (!match) {
+                        let chatRegex;
+                        let match: RegExpMatchArray | null;
+                        let formattedMessage;
+                        let message: string;
+                        if (cnt.startsWith('[FreeChat]')) {
+                            chatRegex = /^\[(.*?)](?: \((.*?)\))? (.*?) \[(.*?)]?: (.*)/;
+                            match = cnt.match(chatRegex);
+                            if (!match) {
+                                break;
+                            }
+                            const [, , role, username, identifier, msg] = match;
+                            message = msg;
+                            formattedMessage = `**[${match[1]}]** **[${identifier}]**${role ? ` *(${role})*` : ''} ~ ${username}: \`${message.trim()}\``;
+                        } else if (cnt.startsWith('[BuddyChat]')) {
+                            chatRegex = /^\[(.*?)](?: \((.*?)\))? (.*?) \[(.*?)] \(to(?: \((.*?)\))? (.*?) \[(.*?)\]\): (.*)/;
+                            match = cnt.match(chatRegex);
+                            if (!match) {
+                                break;
+                            }
+                            const [, , senderRole, senderName, senderId, receiverRole, receiverName, receiverId, msg] = match;
+                            message = msg;
+                            formattedMessage = `**[${match[1]}]** from: **[${senderId}]**${senderRole ? ` *(${senderRole})*` : ''} ${senderName} __to__ **[${receiverId}]**${receiverRole ? ` *(${receiverRole})*` : ''} ${receiverName}\n\`${message.trim()}\``;
+                        } else {
                             break;
                         }
-
-                        const [, , role, username, identifier, message] = match;
 
                         const blockedWords = this.words.filter((word) => message.toLowerCase().includes(word.toLowerCase()));
 
@@ -209,7 +227,6 @@ export class FusionFallMonitor {
                             break;
                         }
 
-                        const formattedMessage = `**[${match[1]}]**${role ? ` *(${role})*` : ''} ${identifier ? `*[${identifier}]*` : ''} **~** ${username}: \`${message.trim()}\``;
                         channel.send(formattedMessage);
                     }
                     break;
