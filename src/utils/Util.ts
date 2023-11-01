@@ -12,7 +12,7 @@ import words from '../bannedWords.json' assert { type: 'json' };
  * @param string - The string to be capitalised.
  * @returns The capitalised string.
  */
-export function capitalise(string: string) {
+export function capitalise(string: string): string {
     return string.replace(/\S+/g, (word) => word.slice(0, 1).toUpperCase() + word.slice(1));
 }
 
@@ -23,9 +23,13 @@ export function capitalise(string: string) {
  * @returns void
  */
 export function deletableCheck(message: Message, time: number): void {
-    setTimeout(() => {
-        if (message && message.deletable) {
-            message.delete().catch(console.error);
+    setTimeout(async () => {
+        try {
+            if (message && message.deletable) {
+                await message.delete();
+            }
+        } catch (error) {
+            // Do nothing with the error
         }
     }, time);
 }
@@ -37,7 +41,7 @@ export function deletableCheck(message: Message, time: number): void {
  * @returns An object containing command names and their corresponding IDs.
  * If there are no commands or an error occurs, an empty object is returned.
  */
-export async function getCommandIds(client: Client) {
+export async function getCommandIds(client: Client): Promise<{ [name: string]: string }> {
     try {
         // Fetch the registered global application commands
         const commands = await client.application?.commands.fetch();
