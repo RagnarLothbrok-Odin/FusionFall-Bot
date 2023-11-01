@@ -11,7 +11,7 @@ import { capitalise, deletableCheck, getCommandIds } from '../../utils/Util.js';
 @Category('Miscellaneous')
 export class Help {
     /**
-     * Slash command to display list of commands.
+     * Slash command to display a list of commands.
      * @param interaction - The command interaction.
      * @param client - The Discord client.
      */
