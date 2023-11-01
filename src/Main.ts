@@ -97,7 +97,7 @@ async function run() {
             // Connect to FusionFall
             await client.monitor.connect();
         } catch (error) {
-            console.error('Failed to log in.');
+            console.error('An error occurred while initializing the bot:', error);
         }
     };
     await loadSequentially();
