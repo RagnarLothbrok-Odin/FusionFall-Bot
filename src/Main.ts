@@ -87,14 +87,18 @@ async function run() {
      * @returns A Promise that resolves with void when everything is loaded sequentially.
      */
     const loadSequentially = async () => {
-        await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`);
-        await sleep(time);
-        await client.login(process.env.Token as string);
-        await sleep(time * 4);
-        // Create a new instance of FusionFallMonitor
-        client.monitor = new FusionFallMonitor(client);
-        // Connect to FusionFall
-        await client.monitor.connect();
+        try {
+            await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`);
+            await sleep(time);
+            await client.login(process.env.Token as string);
+            await sleep(time * 4);
+            // Create a new instance of FusionFallMonitor
+            client.monitor = new FusionFallMonitor(client);
+            // Connect to FusionFall
+            await client.monitor.connect();
+        } catch (error) {
+            console.error('Failed to log in.');
+        }
     };
     await loadSequentially();
 }
