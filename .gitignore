@@ -32,6 +32,6 @@ build/
 
 # Yarn: lock file and error log
 yarn-error.log
-.yarn/install-state.gz
+.yarn/
 .pnp.cjs
 .pnp.loader.mjs
