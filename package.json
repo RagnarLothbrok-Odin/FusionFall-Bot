@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node build/Main.js",
+    "start": "tsc && node build/Main.js",
     "dev": "ts-node-esm src/Main.ts"
   },
   "type": "module",
