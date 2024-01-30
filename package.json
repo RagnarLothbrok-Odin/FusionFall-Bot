@@ -1,6 +1,6 @@
 {
   "name": "fusionfall-bot",
-  "version": "1.0.50",
+  "version": "1.0.51",
   "description": "A Discord bot to interact with a FusionFall server.",
   "license": "GPL-3.0-or-later",
   "author": "Ragnar Lothbrok <ragnarlothbrokjr@proton.me>",
